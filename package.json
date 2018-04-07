@@ -1,0 +1,23 @@
+{
+  "name": "herman-server",
+  "version": "0.0.1",
+  "dependencies": {
+    "botbuilder": "^3.14.1",
+    "botbuilder-ai": "^4.0.0-m2.5",
+    "dotenv": "^2.0.0",
+    "request": "^2.85.0",
+    "restify": "^4.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^6.0.52",
+    "@types/restify": "^2.0.35"
+  },
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "node ."
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
