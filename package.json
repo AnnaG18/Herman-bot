@@ -12,7 +12,7 @@
     "@types/node": "^6.0.52",
     "@types/restify": "^2.0.35"
   },
-  "main": "bot.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "node ."
