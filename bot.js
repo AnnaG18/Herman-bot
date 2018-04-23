@@ -7,5 +7,12 @@ const connector = new builder.ChatConnector({
 
 // set up default dialog to use QnA Maker
 const bot = new builder.UniversalBot(connector, require('./qnadialog.js'));
+const logMessage = require('./middleware/logMessages');
+
+// Middleware for logging
+bot.use({
+    receive: logMessage.receive,
+    send: logMessage.send
+});
 
 module.exports = bot;

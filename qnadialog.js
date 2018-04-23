@@ -7,15 +7,15 @@ module.exports = (session, args, next) => {
     const question = session.message.text;
     const bodyText = JSON.stringify({question: question});
     const uri = `https://westus.api.cognitive.microsoft.com/qnamaker/v1.0/knowledgebases/${process.env.KBID}/generateAnswer`;
-    console.log(uri);
+    //console.log(uri);
 
     request.post(uri, { body: bodyText }, (err, code, body) => {
         if(err) {
-            console.log(err);
+         //   console.log(err);
             session.endConversation('Entschuldige, etwas ist schiefgegangen.');
         } else {
             const response = JSON.parse(body);
-    console.log(response);
+   // console.log(response);
     if(response.score > 75) {
         session.endConversation(response.answer);
     } else if (response.score > 0) {

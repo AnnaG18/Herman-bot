@@ -5,6 +5,7 @@
     "botbuilder": "^3.14.1",
     "botbuilder-ai": "^4.0.0-m2.5",
     "dotenv": "^2.0.0",
+    "mongoose": "^5.0.15",
     "request": "^2.85.0",
     "restify": "^4.3.2"
   },
