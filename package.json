@@ -1,8 +1,11 @@
 {
   "name": "herman-server",
   "version": "0.0.1",
+  "engines": {
+    "node": ">=8.11.0"
+  },
   "dependencies": {
-    "botbuilder": "^3.14.1",
+    "botbuilder": "^3.15.0",
     "botbuilder-ai": "^4.0.0-m2.5",
     "dotenv": "^2.0.0",
     "mongoose": "^5.0.15",
