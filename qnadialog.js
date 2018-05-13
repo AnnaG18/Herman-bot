@@ -1,29 +1,55 @@
- 'use strict';
+const request = require('request-promise-native');
 
-const request = require('request');
+const qnaAppId = process.env.APPID;
+const qnaURL = `https://herman.azurewebsites.net/qnamaker/knowledgebases/${qnaAppId}/generateAnswer`;
 
-module.exports = (session, args, next) => {
+const qnaDialog = async (session, args, next) => {
+    // Call other middleware
+    next();
+
+    // Prepare request to QNAMaker
+    const {message} = session;
+    const {text: question} = message;
+    const reqBody = {question};
+
+    const options = {
+        method: 'POST',
+        uri: qnaURL,
+        body: reqBody,
+        json: true,
+        headers: {
+            'Authorization': `EndpointKey ${process.env.KBAUTH}`
+        }
+    };
+
+    // Let the user know that the bot is thinking
     session.sendTyping();
-    const question = session.message.text;
-    const bodyText = JSON.stringify({question: question});
-    const uri = `https://westus.api.cognitive.microsoft.com/qnamaker/v1.0/knowledgebases/${process.env.KBID}/generateAnswer`;
-    //console.log(uri);
 
-    request.post(uri, { body: bodyText }, (err, code, body) => {
-        if(err) {
-         //   console.log(err);
-            session.endConversation('Entschuldige, etwas ist schiefgegangen.');
+    try {
+        // Send request. Promise rejections are handled in catch
+        const response = await request(options);
+        // Extract data from response
+        const {answers} = response;
+        const [bestAnswer] = answers;
+        const {score, answer} = bestAnswer;
+
+        let message;
+
+        // Handle the top answer found by QNAMaker
+        if (score > 75) {
+            message = answer;
+        } else if (score > 0) {
+            message = "Ich bin nicht sicher aber ...\n\n" + answer;
         } else {
-            const response = JSON.parse(body);
-   // console.log(response);
-    if(response.score > 75) {
-        session.endConversation(response.answer);
-    } else if (response.score > 0) {
-        session.send(`Ich bin nicht sicher aber ...`);
-        session.endConversation(response.answer);
-    } else {
-        session.endConversation(`Oh nein, dafür habe ich keine Antwort. Aber frag mich was zum Studium`);
+            message = `Oh nein, dafür habe ich keine Antwort. Aber frag mich was zum Studium`;
+        }
+
+        // This is only QNA, so end the conversation with the answer.
+        session.endConversation(message);
+    } catch(err) {
+        console.log(err, 'error');
+        session.endConversation('Entschuldige, etwas ist schiefgegangen.');
     }
-}
-}).setHeader('Ocp-Apim-Subscription-Key', process.env.SUBSCRIPTION_KEY);
 };
+
+module.exports = qnaDialog;

@@ -7,6 +7,7 @@
     "dotenv": "^2.0.0",
     "mongoose": "^5.0.15",
     "request": "^2.85.0",
+    "request-promise-native": "^1.0.5",
     "restify": "^4.3.2"
   },
   "devDependencies": {
@@ -16,7 +17,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ."
+    "serve": "node ."
   },
   "author": "",
   "license": "ISC",
