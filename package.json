@@ -20,7 +20,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "node ."
+    "start": "node ."
   },
   "author": "",
   "license": "ISC",

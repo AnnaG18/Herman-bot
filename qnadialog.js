@@ -3,9 +3,14 @@ const request = require('request-promise-native');
 const qnaAppId = process.env.APPID;
 const qnaURL = `https://herman.azurewebsites.net/qnamaker/knowledgebases/${qnaAppId}/generateAnswer`;
 
-const qnaDialog = async (session, args, next) => {
-    // Call other middleware
-    next();
+/**
+ * @param {Session} session
+ * @param args
+ * @returns {Promise<void>}
+ */
+const qnaDialog = async (session, args) => {
+    // Let the user know that the bot is thinking
+    session.sendTyping();
 
     // Prepare request to QNAMaker
     const {message} = session;
@@ -22,12 +27,14 @@ const qnaDialog = async (session, args, next) => {
         }
     };
 
-    // Let the user know that the bot is thinking
-    session.sendTyping();
-
     try {
+
         // Send request. Promise rejections are handled in catch
         const response = await request(options);
+
+        // Let the user know that the bot is thinking
+        session.sendTyping();
+
         // Extract data from response
         const {answers} = response;
         const [bestAnswer] = answers;
