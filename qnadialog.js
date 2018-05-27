@@ -52,7 +52,8 @@ const qnaDialog = async (session, args) => {
         }
 
         // This is only QNA, so end the conversation with the answer.
-        session.endConversation(message);
+       /// session.endConversation(message);
+        session.send(message);
     } catch(err) {
         console.log(err, 'error');
         session.endConversation('Entschuldige, etwas ist schiefgegangen.');
