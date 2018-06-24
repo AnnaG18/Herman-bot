@@ -12,7 +12,8 @@ const Conversation = mongoose.model('Conversation', {
     id: String,
     messages: [Message],
     user: Object,
-    source: String
+    source: String,
+    createdAt: Date,
 });
 
 const conversations = {};
@@ -24,6 +25,7 @@ function createConversation(id, data) {
             messages: [],
             user: data.user,
             source: data.source,
+            createdAt: Date.now(),
         });
 
         conversations[id] = conversation;
@@ -33,7 +35,7 @@ function createConversation(id, data) {
 
 function logMessage(source, message) {
     const conversationId = message.address.conversation.id;
-    const from = source === 'user' ? message.address.user.name : 'bot' ;
+    const from = source === 'user' ? message.address.user.name : 'bot';
     const to = source === 'bot' ? message.address.user.name : 'bot';
     const conversation = conversations[conversationId] || createConversation(conversationId, {
         user: message.address.user,
@@ -55,13 +57,13 @@ function getMessageObjectFromEvent(from, to, event) {
 async function saveConversation(id) {
     const localConversation = conversations[id];
     let conversation;
-    try{
+    try {
         const existingConversation = await Conversation.findOne({id});
-        if(existingConversation !== null) {
+        if (existingConversation !== null) {
             conversation = existingConversation;
             //add messages from local conversation to db conversation
             conversation.messages = conversation.messages.concat(localConversation.messages);
-        }else{
+        } else {
             conversation = localConversation;
         }
         //deletion of local conversation so we do not log messages twice.
@@ -70,12 +72,12 @@ async function saveConversation(id) {
         delete conversations[id];
         await conversation.save();
     }
-    catch(err){
+    catch (err) {
         //  if an error occurs while saving (network gone, etc.), re-add the local conversation
         // so we have another got at saving at a later time.
         // Only do this if the conversation was deleted before.
-        if(!id in conversations){
-           conversations[id] = localConversation;
+        if (!id in conversations) {
+            conversations[id] = localConversation;
         }
         console.warn(`Error saving conversation with id ${id}.`, err);
     }
@@ -87,7 +89,7 @@ const logger = (source) => (event) => {
         case 'message':
             //console.log( event,  'source');
             logMessage(source, event);
-           // saveConversation(event.address.conversation.id);
+            // saveConversation(event.address.conversation.id);
             break;
         case 'endOfConversation':
             saveConversation(event.address.conversation.id);
