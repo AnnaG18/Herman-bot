@@ -5,12 +5,9 @@ const qnaURL = `https://herman.azurewebsites.net/qnamaker/knowledgebases/${qnaAp
 
 /**
  * @param {Session} session
- * @param args
  * @returns {Promise<void>}
  */
-const qnaDialog = async (session, args) => {
-    // Let the user know that the bot is thinking
-    session.sendTyping();
+const qnaDialog = async (session) => {
 
     // Prepare request to QNAMaker
     const {message} = session;
@@ -26,7 +23,8 @@ const qnaDialog = async (session, args) => {
             'Authorization': `EndpointKey ${process.env.KBAUTH}`
         }
     };
-
+    // Let the user know that the bot is thinking
+    session.sendTyping();
     try {
 
         // Send request. Promise rejections are handled in catch
@@ -42,21 +40,22 @@ const qnaDialog = async (session, args) => {
 
         let message;
 
-        // Handle the top answer found by QNAMaker
-        if (score > 75) {
+      // Handle the top answer found by QNAMaker
+        if (score > 60) {
             message = answer;
         } else if (score > 0) {
             message = "Ich bin nicht sicher aber ...\n\n" + answer;
         } else {
             message = `Oh nein, dafür habe ich keine Antwort. Aber frag mich was zum Studium`;
         }
-
-        // This is only QNA, so end the conversation with the answer.
-       /// session.endConversation(message);
+        session.message.attachment = 'save';
+       /// console.log (session.message,message, 'testetst');
         session.send(message);
+
+
     } catch(err) {
         console.log(err, 'error');
-        session.endConversation('Entschuldige, etwas ist schiefgegangen.');
+        session.send('Entschuldige, etwas ist schiefgegangen.');
     }
 };
 
