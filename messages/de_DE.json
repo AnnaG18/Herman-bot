@@ -3,7 +3,7 @@
   "WelcomeMsg":"Hallo, ich bin Herman. Du kannst mir Fragen zum Services Computing Studium stellen.",
   "GoodBye":"Auf Wiedersehen! Bis zum nächsten Mal.",
   "StartQnA":"Jetzt kannst du mit dem Fragen beginnen.",
-  "AcceptDSGVO":"Aber zuvor möchte ich euch in Kenntnis setzen, dass die Konversation (Fragen, Antworten sowie Zeitpunkte) aufgezeichnet wird. Dadurch kann ich die Qualität der Antworten ständig verbessern. Bitte stimme dem Loggen der Nachrichten zu, um mit mir zu chatten.",
+  "AcceptDSGVO":"Bevor du mir Fragen stellen kannst, möchte ich dich in Kenntnis setzen, dass die Konversation (Fragen, Antworten sowie Zeitpunkte) aufgezeichnet wird. Dadurch kann ich die Qualität der Antworten ständig verbessern. Bitte stimme dem Loggen der Nachrichten zu, um mit mir zu chatten.",
   "accept":"akzeptieren",
   "acceptedDSGVO":"Vielen Dank, dass du die Datenschutzrichtlinie akzeptiert hast."
 

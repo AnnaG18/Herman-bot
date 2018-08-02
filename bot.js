@@ -5,130 +5,103 @@ const connector = new builder.ChatConnector({
     appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 
-// set up default dialog to use QnA Maker
-const bot = new builder.UniversalBot(connector);
-    // require('./qnadialog.js'));
 const logMessage = require('./middleware/logMessages');
 
 //import of messages.JSON
 const botMsg = require('./messages/de_DE');
 
-bot.on('conversationUpdate', function (message) {
-    if (message.membersAdded && message.membersAdded.length > 0) {
-        // Only send message if the bot is added to the conversation.
-        const isBotAdded = message.address.bot.id === message.membersAdded[0].id;
-        if (!isBotAdded) {
-            return;
-        }
+//import dialogs
+const qnaDialog = require('./qnadialog');
+const acceptDsgvoDialog = require('./acceptDsgvo');
 
-        // Say hello
-        const isGroup = message.address.conversation.isGroup;
-        const txt = isGroup ? botMsg.Greeting : botMsg.WelcomeMsg;
-        const reply = new builder.Message()
-            .address(message.address)
-            .text(txt);
-        bot.send(reply);
-
-    } else if (message.membersRemoved) {
-        // See if bot was removed
-        const botId = message.address.bot.id;
-        for (let i = 0; i < message.membersRemoved.length; i++) {
-            if (message.membersRemoved[i].id === botId) {
-                // Say goodbye
-                const reply = new builder.Message()
-                    .address(message.address)
-                    .text(botMsg.GoodBye);
-                bot.send(reply);
-                break;
-            }
-        }
-    }
-});
-
-bot.dialog('qnadialog', [function(session){
-    session.send( botMsg.StartQnA );
-}, require('./qnadialog')]);
-
-
-//TODO: trigger this after conversationUpdate start message
-bot.dialog('/', [
+// Make a new bot and set the QNA dialog as the default dialog. That way, the
+// bot will enter QNA mode whenever there is no other active dialog on the
+// stack.
+const bot = new builder.UniversalBot(connector, [
     function (session) {
-
-        const msg = new builder.Message(session)
-            .text(botMsg.AcceptDSGVO)
-            .suggestedActions(
-                builder.SuggestedActions.create(
-                    session,[
-                        builder.CardAction.imBack(session, botMsg.accept, botMsg.accept)
-                    ]
-                )
-            );
-        builder.Prompts.choice(session, msg, ["akzeptieren"]);
-
+        session.beginDialog('acceptDsgvo');
     },
-    function(session, results) {
-        let regex = /ok|ja|zustimmen|akzeptieren|klar\!|affirmativ|positiv/gi;
-        if (regex.test(results.response)) {
-            session.send( botMsg.acceptedDSGVO );
-
-        }
-
-        session.beginDialog('*:qnadialog');
-    }
-]);
-
-/*
-bot.dialog('/', [
     function (session) {
-        var msg = new builder.Message(session)
-            .text("Akzeptieren?DSGVO")
-            .suggestedActions(
-                builder.SuggestedActions.create(
-                    session,[
-                        builder.CardAction.imBack(session, "ja!", "ja!"),
-                        builder.CardAction.imBack(session, "nein.", "nein.")
-                    ]
-                )
-            );
-      //  builder.Prompts.text(session, msg);
-        session.send(msg);
+        session.beginDialog('qnadialogStart');
     },
-    function(session, results) {
-        let regex = /yeah|yes|sure|of course|i do\!|affirmative|positive/gi;
-        if (regex.test(results.response)) {
-            session.beginDialog("Accepted");
-        } else {
-            session.beginDialog("NotAccepted");
-        }
-    }]);
+    function (session) {
+        session.beginDialog('qna');
+    },
+] );
 
-bot.dialog("Accepted", function(session) {
-    let yesAndMoreRegex = /|akzeptieren/gi;
-    if (yesAndMoreRegex.test(session.message.text)) {
-        session.endDialog("You like other foods too?  Awesome!  But pizza is the best!");
-    } else {
-        session.endDialog("Who doesn't like pizza?!");
-    }
+//acceptDSGVO dialog triggered after conversationUpdate start message
+bot.dialog('acceptDsgvo', acceptDsgvoDialog);
 
-
+//show qnadialogStart dialog message
+bot.dialog('qnadialogStart', function (session) {
+    builder.Prompts.text(session, botMsg.StartQnA);
 });
 
-bot.dialog("NotAccepted", function(session) {
-    let noButRegex = /but|although|better/gi;
-    if (noButRegex.test(session.message.text)) {
-        session.endDialog("True, there's foods other than pizza.  There's something for everyone!");
-    } else {
-        session.endDialog("Well, pizza's not for everyone, I guess...");
+bot.dialog('qna', qnaDialog);
+
+
+bot.on('conversationUpdate', (message) => {
+    // Only send message if the bot is added to the conversation. As the bot
+    // does not enter group conversations, there is no difference if the user
+    // is greeted by the bot or the bot says hello to everyone in the channel.
+    const memberAdded = message.membersAdded && message.membersAdded.length > 0;
+    const botIsAddedMember = message.address && message.address.bot.id === message.membersAdded[0].id;
+    // Start the greeting
+    if (memberAdded && botIsAddedMember) {
+        message.membersAdded.forEach(function (identity){
+           if(identity.id === message.address.bot.id){
+               const reply = new builder.Message()
+                   .address(message.address)
+                   .text(botMsg.WelcomeMsg);
+               bot.send(reply);
+           } else{
+               const address = Object.create(message.address);
+               address.user = identity;
+               const reply = new builder.Message()
+                   .address(message.address)
+                   .text(botMsg.WelcomeMsg + identity.name);
+               bot.send(reply);
+           }
+        });
     }
-
 });
-
-*/
 
 // Middleware for logging
 bot.use({
-    receive: logMessage.receive,
-    send: logMessage.send
+    /* send messages from user to bot*/
+    botbuilder: (session, next) => {
+        if (!session || !session.message || !session.message.text) {
+            return next();
+        }
+        logMessage.receive(session.message);
+        if (session.privateConversationData.userAcceptedDSGVO) {
+            logMessage.persist(session.message.address.conversation.id);
+        } else {
+            logMessage.deleteConversation(session.message.address.conversation.id)
+        }
+        next();
+    },
+
+    /* send messages from bot to user*/
+    send: function (message, next) {
+        if (message.type !== 'message') {
+            return next();
+        }
+
+        bot.loadSession(message.address, async function (error, session) {
+            const messageCopy = {...message, address: message.address || session.message.address};
+
+            logMessage.send(messageCopy);
+
+            if (session.privateConversationData.userAcceptedDSGVO) {
+                await logMessage.persist(messageCopy.address.conversation.id);
+                next();
+            } else {
+                next();
+            }
+        });
+    },
+
 });
 
 module.exports = bot;
