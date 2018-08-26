@@ -45,7 +45,6 @@ const qnaDialog = async (session) => {
             message = answer;
         } else if (score > 0) {
             message = "Frage möglicherweise missverstanden \n\n" + "[ " +answer+ " ]" ;
-       //     message = "Ich bin nicht sicher aber ...\n\n" + answer;
         } else {
             message = `Oh nein, dafür habe ich keine Antwort. Aber frag mich was zum Studium`;
         }
