@@ -20,6 +20,7 @@ const acceptDsgvo = [
         if (acceptDsgvoRegex.test(results.response)) {
             session.privateConversationData.userAcceptedDSGVO = true;
             session.send(botMsg.acceptedDSGVO);
+            session.send(botMsg.StartQnA);
             session.endDialog();
         } else {
             session.reset();

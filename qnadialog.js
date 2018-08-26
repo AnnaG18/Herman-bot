@@ -52,7 +52,6 @@ const qnaDialog = async (session) => {
 
         session.send(message);
 
-
     } catch(err) {
         console.log(err, 'error');
         session.send('Entschuldige, etwas ist schiefgegangen.');

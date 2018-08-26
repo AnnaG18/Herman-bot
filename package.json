@@ -15,12 +15,14 @@
   },
   "devDependencies": {
     "@types/node": "^6.0.52",
-    "@types/restify": "^2.0.35"
+    "@types/restify": "^2.0.35",
+    "nodemon": "^1.17.5"
   },
   "main": "app.js",
   "scripts": {
+    "dev": "nodemon .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ."
+    "start": "node $NODE_DEBUG_OPTION ."
   },
   "author": "",
   "license": "ISC",
